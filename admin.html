@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Baneplan Admin - VB Parken</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root{--red:#e30613;--dark:#111;--muted:#697386;--line:#e3e7ee;--bg:#f5f6f8;--ok:#0f8a45;--warn:#b26b00;--bad:#b42318}
+    *{box-sizing:border-box} body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:#111}
+    .wrap{max-width:1180px;margin:0 auto;padding:24px}.card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 28px rgba(0,0,0,.06);overflow:hidden}
+    header{display:flex;justify-content:space-between;gap:20px;align-items:center;padding:24px 26px;border-bottom:1px solid var(--line)}
+    h1{margin:0;font-size:28px;letter-spacing:.02em;text-transform:uppercase}.season{color:var(--muted);font-weight:700;margin-top:6px;font-size:13px;text-transform:uppercase;letter-spacing:.08em}
+    .badge{background:#111;color:#fff;padding:8px 12px;border-radius:999px;font-size:12px;font-weight:700;text-transform:uppercase}.content{padding:24px 26px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}@media(max-width:850px){.grid{grid-template-columns:1fr}.wrap{padding:12px}header{align-items:flex-start;flex-direction:column}}
+    .drop{border:2px dashed #c9d1dd;border-radius:14px;padding:24px;text-align:center;background:#fbfcfe}.drop strong{display:block;font-size:18px;margin-bottom:8px}.drop p{margin:0 0 16px;color:var(--muted)} input[type=file]{display:block;margin:0 auto}
+    .panel{border:1px solid var(--line);border-radius:14px;padding:18px;background:#fff}.panel h2{margin:0 0 12px;font-size:18px}.small{color:var(--muted);font-size:13px;line-height:1.45}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+    button{border:0;border-radius:10px;padding:11px 14px;font-weight:750;cursor:pointer}.primary{background:var(--red);color:#fff}.secondary{background:#111;color:#fff}.ghost{background:#eef1f5;color:#111}button:disabled{opacity:.45;cursor:not-allowed}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}@media(max-width:850px){.stats{grid-template-columns:repeat(2,1fr)}}.stat{background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:14px}.stat b{display:block;font-size:24px}.stat span{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase}
+    table{border-collapse:collapse;width:100%;font-size:13px;margin-top:12px}th,td{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}th{background:#f8fafc;font-size:12px;text-transform:uppercase;color:#4b5563}.log{max-height:380px;overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fff}.item{padding:10px 12px;border-bottom:1px solid var(--line);font-size:13px}.item:last-child{border-bottom:0}.ok{color:var(--ok);font-weight:700}.warn{color:var(--warn);font-weight:700}.bad{color:var(--bad);font-weight:700}.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.hidden{display:none}.footer{padding:16px 26px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+  </style>
+</head>
+<body>
+<div class="wrap"><div class="card">
+<header><div><h1>Baneplan Admin</h1><div class="season">VB Parken - Efterår '26 / Forår '27</div></div><div class="badge">Excel til data.json</div></header>
+<div class="content">
+  <div class="grid">
+    <div class="panel">
+      <h2>1. Upload Excel</h2>
+      <div class="drop">
+        <strong>Vælg træningstider.xlsx</strong>
+        <p>Excel skal indeholde kolonner som Dag/Ugedag, Hold, Start, Slut, Bane, Omkl. og evt. Type/Kategori.</p>
+        <input id="file" type="file" accept=".xlsx,.xls" />
+      </div>
+      <div class="actions">
+        <button id="download" class="primary" disabled>Download data.json</button>
+        <button id="copy" class="ghost" disabled>Kopiér JSON</button>
+        <button id="clear" class="ghost">Nulstil</button>
+      </div>
+      <p class="small">Efter download uploader du <b>data.json</b> til GitHub og committer. Hjemmesiden opdateres automatisk via GitHub Pages.</p>
+    </div>
+    <div class="panel">
+      <h2>2. Kontrol</h2>
+      <div class="stats">
+        <div class="stat"><b id="sEvents">0</b><span>linjer</span></div>
+        <div class="stat"><b id="sDays">0</b><span>dage</span></div>
+        <div class="stat"><b id="sWarnings">0</b><span>advarsler</span></div>
+        <div class="stat"><b id="sErrors">0</b><span>fejl</span></div>
+      </div>
+      <div class="actions"><button id="previewBtn" class="secondary" disabled>Vis preview</button><button id="diffBtn" class="ghost" disabled>Vis diff</button></div>
+    </div>
+  </div>
+
+  <div class="grid" style="margin-top:20px">
+    <div class="panel"><h2>Valideringsrapport</h2><div id="report" class="log"><div class="item small">Upload Excel for at starte kontrol.</div></div></div>
+    <div class="panel"><h2>Diff mod nuværende data.json</h2><div id="diff" class="log"><div class="item small">Diff vises efter upload, hvis nuværende data.json kan læses.</div></div></div>
+  </div>
+
+  <div id="preview" class="panel hidden" style="margin-top:20px"><h2>Preview af importerede linjer</h2><div style="overflow:auto"><table id="table"></table></div></div>
+</div>
+<div class="footer">Adminmodulet gemmer ikke direkte i GitHub. Det genererer en ny <span class="mono">data.json</span>, som uploades til repositoryet.</div>
+</div></div>
+<script>
+const DAYS=['Mandag','Tirsdag','Onsdag','Torsdag','Fredag','Lørdag','Søndag'];
+const FIELDS=['Bane 2','Bane 3','Bane 6','Bane 7','Bane 8','Bane 9','Bane 10/11'];
+let generated=null,current=null,lastRows=[];
+const $=id=>document.getElementById(id);
+function normKey(k){return String(k||'').toLowerCase().replace(/[\.\s_-]/g,'').replace('æ','ae').replace('ø','oe').replace('å','aa');}
+function pick(row,names){const keys=Object.keys(row);for(const name of names){const nk=normKey(name);const hit=keys.find(k=>normKey(k)===nk);if(hit!==undefined)return row[hit];}return ''}
+function pad(n){return String(n).padStart(2,'0')}
+function timeToMinutes(v){
+  if(v===undefined||v===null||v==='')return null;
+  if(typeof v==='number'){
+    if(v>0&&v<1) return Math.round(v*24*60);
+    return Math.round(v*24*60); // Excel time can arrive as fraction
+  }
+  let s=String(v).trim().replace(',', '.').replace('-', ':');
+  let m=s.match(/(\d{1,2})[\.:](\d{2})/); if(m) return (+m[1])*60+(+m[2]);
+  m=s.match(/^(\d{1,2})$/); if(m) return (+m[1])*60;
+  return null;
+}
+function minText(m){return m==null?'':`${Math.floor(m/60)}.${pad(m%60)}`}
+function normDay(v){const s=String(v||'').trim().toLowerCase();return DAYS.find(d=>d.toLowerCase().startsWith(s.slice(0,3)))||''}
+function normField(v){let s=String(v||'').trim(); if(!s)return ''; s=s.replace(/bane/i,'Bane').replace(/\s+/g,' '); if(/^\d/.test(s))s='Bane '+s; return s;}
+function normRoom(v){if(v===undefined||v===null)return ''; const s=String(v).trim(); if(!s||s==='-'||s.toLowerCase()==='nej')return ''; return s.replace(/^omkl\.?\s*/i,'');}
+function inferCat(team,type){const t=(String(team)+' '+String(type)).toLowerCase(); if(t.includes('reserver'))return 'reserveret'; if(t.includes('future'))return 'future'; if(t.includes('akademi'))return 'akademi'; if(t.includes('piger')||t.includes('kvinder')||t.includes('ks'))return 'piger'; if(t.includes('drenge')||t.includes('boys')||t.includes('old boys'))return 'drenge'; return 'andet';}
+function parseRows(rows){const events=[], issues=[]; let id=1; rows.forEach((row,idx)=>{
+  const day=normDay(pick(row,['Dag','Ugedag','Uge dag']));
+  const team=String(pick(row,['Hold','Navn','Team','Aktivitet'] )||'').trim();
+  const start=timeToMinutes(pick(row,['Start','Starttid','Fra','Tid fra']));
+  const end=timeToMinutes(pick(row,['Slut','Sluttid','Til','Tid til']));
+  const field=normField(pick(row,['Bane','Field','Bane nr','Banen']));
+  const room=normRoom(pick(row,['Omkl','Omkl.','Omklædning','Omklædningsrum','Rum']));
+  const type=pick(row,['Type','Kategori','Category']);
+  const excelLine=idx+2;
+  if(!day&&!team&&!start&&!end&&!field) return;
+  if(!day) issues.push({level:'bad',text:`Linje ${excelLine}: mangler dag/ugedag`});
+  if(!team) issues.push({level:'bad',text:`Linje ${excelLine}: mangler hold/navn`});
+  if(start==null) issues.push({level:'bad',text:`Linje ${excelLine}: mangler/ugyldig starttid`});
+  if(end==null) issues.push({level:'bad',text:`Linje ${excelLine}: mangler/ugyldig sluttid`});
+  if(start!=null&&end!=null&&end<=start) issues.push({level:'bad',text:`Linje ${excelLine}: sluttid er før eller lig starttid (${minText(start)}-${minText(end)})`});
+  if(!field) issues.push({level:'bad',text:`Linje ${excelLine}: mangler bane`});
+  if(field && !FIELDS.includes(field)) issues.push({level:'warn',text:`Linje ${excelLine}: ukendt bane '${field}'`});
+  if(day&&start!=null&&end!=null){const wk=['Mandag','Tirsdag','Onsdag','Torsdag','Fredag'].includes(day); const min=wk?14*60+30:9*60; const max=wk?21*60:14*60; if(start<min||end>max) issues.push({level:'warn',text:`Linje ${excelLine}: tid ligger uden for visningsvinduet for ${day} (${minText(min)}-${minText(max)})`});}
+  if(day&&team&&start!=null&&end!=null&&field){events.push({id:'e'+id++,day,team,start,end,startText:minText(start),endText:minText(end),field,room,category:inferCat(team,type),sourceLine:excelLine});}
+ }); return {events,issues};}
+function validate(events,issues){
+  const byKey={}; events.forEach(e=>{const k=[e.day,e.team,e.start,e.end,e.field,e.room].join('|'); if(byKey[k]) issues.push({level:'warn',text:`Mulig dublet: ${e.day} ${e.team} ${e.startText}-${e.endText} ${e.field}`}); byKey[k]=1;});
+  DAYS.forEach(day=>FIELDS.forEach(field=>{const arr=events.filter(e=>e.day===day&&e.field===field).sort((a,b)=>a.start-b.start); for(let i=0;i<arr.length;i++){const overlaps=arr.filter(x=>x!==arr[i]&&x.start<arr[i].end&&arr[i].start<x.end); if(overlaps.length>=2) issues.push({level:'warn',text:`${day} ${field}: ${overlaps.length+1} aktiviteter overlapper omkring ${arr[i].startText}`});}}));
+  DAYS.forEach(day=>{const arr=events.filter(e=>e.day===day&&e.room); for(let i=0;i<arr.length;i++){for(let j=i+1;j<arr.length;j++){if(arr[i].room===arr[j].room&&arr[i].start<arr[j].end&&arr[j].start<arr[i].end){issues.push({level:'warn',text:`${day}: Omkl. ${arr[i].room} bruges samtidig af ${arr[i].team} og ${arr[j].team}`});}}}});
+  return issues;
+}
+function renderReport(issues){const r=$('report'); if(!issues.length){r.innerHTML='<div class="item ok">Ingen fejl eller advarsler fundet.</div>';return} r.innerHTML=issues.map(x=>`<div class="item"><span class="${x.level}">${x.level==='bad'?'FEJL':'ADVARSEL'}:</span> ${x.text}</div>`).join('');}
+function eventKey(e){return [e.day,e.team,e.startText,e.endText,e.field,e.room||'',e.category].join('|')}
+async function loadCurrent(){try{const res=await fetch('data.json',{cache:'no-store'}); if(res.ok) current=await res.json();}catch(e){current=null}}
+function renderDiff(events){const d=$('diff'); if(!current||!current.events){d.innerHTML='<div class="item warn">Kunne ikke læse nuværende data.json. Diff springes over.</div>';return}
+ const oldSet=new Set(current.events.map(eventKey)); const newSet=new Set(events.map(eventKey)); const added=events.filter(e=>!oldSet.has(eventKey(e))); const removed=current.events.filter(e=>!newSet.has(eventKey(e))); let html='';
+ if(!added.length&&!removed.length) html='<div class="item ok">Ingen forskelle mod nuværende data.json.</div>';
+ added.slice(0,80).forEach(e=>html+=`<div class="item"><span class="ok">NY:</span> ${e.day} - ${e.team}, ${e.startText}-${e.endText}, ${e.field}${e.room?' / Omkl. '+e.room:''}</div>`);
+ removed.slice(0,80).forEach(e=>html+=`<div class="item"><span class="bad">SLETTET:</span> ${e.day} - ${e.team}, ${e.startText}-${e.endText}, ${e.field}${e.room?' / Omkl. '+e.room:''}</div>`);
+ if(added.length+removed.length>160) html+=`<div class="item warn">Viser kun de første 160 ændringer.</div>`; d.innerHTML=html;
+}
+function renderPreview(events){const t=$('table'); const rows=events.slice().sort((a,b)=>DAYS.indexOf(a.day)-DAYS.indexOf(b.day)||a.start-b.start||a.field.localeCompare(b.field)); t.innerHTML='<tr><th>Dag</th><th>Hold</th><th>Tid</th><th>Bane</th><th>Omkl.</th><th>Kategori</th></tr>'+rows.map(e=>`<tr><td>${e.day}</td><td>${e.team}</td><td>${e.startText}-${e.endText}</td><td>${e.field}</td><td>${e.room||''}</td><td>${e.category}</td></tr>`).join('');}
+function downloadJson(){if(!generated)return; const blob=new Blob([JSON.stringify(generated,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='data.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+$('file').addEventListener('change', async ev=>{const file=ev.target.files[0]; if(!file)return; await loadCurrent(); const buf=await file.arrayBuffer(); const wb=XLSX.read(buf,{type:'array',cellDates:false}); const ws=wb.Sheets[wb.SheetNames[0]]; const rows=XLSX.utils.sheet_to_json(ws,{defval:''}); lastRows=rows; let {events,issues}=parseRows(rows); issues=validate(events,issues); generated={events}; renderReport(issues); renderDiff(events); renderPreview(events); $('sEvents').textContent=events.length; $('sDays').textContent=new Set(events.map(e=>e.day)).size; $('sWarnings').textContent=issues.filter(x=>x.level==='warn').length; $('sErrors').textContent=issues.filter(x=>x.level==='bad').length; $('download').disabled=issues.some(x=>x.level==='bad')||!events.length; $('copy').disabled=!events.length; $('previewBtn').disabled=false; $('diffBtn').disabled=false;});
+$('download').onclick=downloadJson; $('copy').onclick=()=>navigator.clipboard.writeText(JSON.stringify(generated,null,2)); $('clear').onclick=()=>location.reload(); $('previewBtn').onclick=()=>$('preview').classList.toggle('hidden'); $('diffBtn').onclick=()=>$('diff').scrollIntoView({behavior:'smooth'});
+</script>
+</body></html>
