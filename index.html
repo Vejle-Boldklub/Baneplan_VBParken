@@ -9,12 +9,14 @@
   --field-w:188px;
   --row-h:32px;
   --header-h:62px;
+  --plan-w:calc(var(--time-w) + 7 * var(--field-w));
 }
+
 *{box-sizing:border-box}
 body{margin:0;font-family:Inter,Arial,Helvetica,sans-serif;background:#f4f5f7;color:#111}
 .page{max-width:1540px;margin:0 auto;padding:16px}
 .card{background:#fff;border:1px solid #e6e9ee;border-radius:14px;box-shadow:0 10px 28px rgba(0,0,0,.08);overflow:hidden}
-.top{display:grid;grid-template-columns:minmax(280px,1fr) auto;align-items:center;gap:22px;padding:26px 34px 22px 30px;border-bottom:1px solid #eceff3;background:linear-gradient(180deg,#ffffff 0%,#fbfcfe 100%);position:relative}
+.top{display:grid;grid-template-columns:minmax(280px,1fr) auto;align-items:center;gap:22px;padding:26px 34px 22px 30px;border-bottom:1px solid #eceff3;background:linear-gradient(180deg,#ffffff 0%,#fbfcfe 100%);position:relative;width:var(--plan-w);max-width:100%;margin:0 auto}
 .brand{position:relative;text-transform:uppercase;display:flex;flex-direction:column;gap:11px;padding:4px 0 4px 19px;font-family:Montserrat,'Avenir Next','Segoe UI',Inter,Arial,sans-serif}
 .brand:before{content:"";position:absolute;left:0;top:2px;bottom:2px;width:5px;border-radius:999px;background:var(--vb-red)}
 .brand h1{margin:0;font-size:27px;line-height:1;font-weight:850;letter-spacing:.035em;white-space:nowrap;color:#080808}
@@ -23,11 +25,11 @@ body{margin:0;font-family:Inter,Arial,Helvetica,sans-serif;background:#f4f5f7;co
 .day-heading{display:none}
 .day-heading:before,.day-heading:after{display:none}
 .logo{height:82px;max-width:125px;object-fit:contain;grid-column:2;justify-self:end;align-self:center;display:block;padding-bottom:3px}
-.tabs{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid #d9dde4;background:#fafafa}
+.tabs{display:grid;grid-template-columns:repeat(7,1fr);border:1px solid #d9dde4;border-left:0;border-right:0;background:#fafafa;width:var(--plan-w);max-width:100%;margin:0 auto}
 .tab{height:44px;border:0;border-right:1px solid #d9dde4;background:#f7f8fa;font-weight:620;color:#596170;text-transform:uppercase;cursor:pointer;font-size:13px;letter-spacing:.02em}
 .tab:last-child{border-right:0}.tab.active{background:var(--vb-red);color:#fff;font-weight:700}
 .scroller{overflow-x:auto;padding:14px 14px 18px}
-.schedule{position:relative;min-width:calc(var(--time-w) + 7 * var(--field-w));display:grid;grid-template-columns:var(--time-w) repeat(7,var(--field-w));grid-template-rows:var(--header-h) auto;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff}
+.schedule{position:relative;width:var(--plan-w);min-width:var(--plan-w);display:grid;grid-template-columns:var(--time-w) repeat(7,var(--field-w));grid-template-rows:var(--header-h) auto;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff;margin:0 auto}
 .corner{grid-column:1;grid-row:1;background:var(--vb-red);border-right:1px solid #fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px;letter-spacing:.025em;position:sticky;left:0;z-index:4}.corner:before{content:"TID"}
 .field-head{height:var(--header-h);border-bottom:1px solid var(--line);border-right:1px solid #323232;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;background:#151515;color:#fff;z-index:2;text-transform:uppercase;padding-top:11px}
 .field-head .name{font-weight:760;font-size:21px;line-height:1;letter-spacing:.015em}.field-head .type{font-size:12px;font-weight:650;line-height:1;color:#fff;text-transform:none;opacity:.95;margin-top:4px}.field-head .type.empty{visibility:hidden}
@@ -39,7 +41,7 @@ body{margin:0;font-family:Inter,Arial,Helvetica,sans-serif;background:#f4f5f7;co
 
 .goals{margin:0 14px 18px;border:1px solid #e1e5eb;border-radius:10px;overflow:auto;background:#fff;box-shadow:0 3px 10px rgba(15,23,42,.04)}
 .goals-title{font-weight:820;letter-spacing:.035em;text-transform:uppercase;font-size:13px;color:#111;padding:12px 14px 8px;border-bottom:1px solid #eef1f5;background:#fbfcfe}
-.goals-table{border-collapse:collapse;font-size:11.5px;color:#5b6572;table-layout:fixed;min-width:calc(var(--time-w) + 7 * var(--field-w));width:calc(var(--time-w) + 7 * var(--field-w))}
+.goals-table{border-collapse:collapse;font-size:11.5px;color:#5b6572;table-layout:fixed;min-width:var(--plan-w);width:var(--plan-w)}
 .goals-table col.goal-first{width:var(--time-w)}.goals-table col.goal-field{width:var(--field-w)}
 .goals-table th,.goals-table td{border-bottom:1px solid #eef1f5;border-right:1px solid #eef1f5;padding:0 8px;text-align:center;vertical-align:middle;line-height:1.25;height:34px}
 .goals-table tr:last-child th,.goals-table tr:last-child td{border-bottom:0}.goals-table th:last-child,.goals-table td:last-child{border-right:0}
@@ -47,7 +49,7 @@ body{margin:0;font-family:Inter,Arial,Helvetica,sans-serif;background:#f4f5f7;co
 .goals-table .goal-type{background:#8290a1;color:#fff;font-weight:800;text-align:left}.goals-table .total{font-weight:720;color:#46515f;background:#fbfcfe}
 
 .tooltip{position:fixed;display:none;z-index:9999;min-width:190px;background:#fff;color:#111;border-radius:8px;padding:12px 13px;box-shadow:0 12px 28px rgba(0,0,0,.22);font-size:13px;pointer-events:none;border:1px solid #e5e7eb}.tooltip .t-title{font-weight:760;margin-bottom:8px;font-size:14px}.tooltip .row{margin-top:4px;font-weight:650;color:#111}.hidden{display:none!important}
-@media(max-width:1350px){:root{--time-w:86px;--field-w:170px;--row-h:31px}.page{padding:0;background:#fff}.card{border-radius:0;border:0;box-shadow:none}.top{display:grid;grid-template-columns:1fr 82px;grid-template-rows:auto;align-items:start;gap:8px 12px;padding:16px 16px 14px;border-bottom:1px solid #eceff3}.brand{grid-column:1;grid-row:1;padding-left:15px;gap:9px}.brand h1{font-size:21px;letter-spacing:.025em;white-space:normal;line-height:1.08}.brand .season{font-size:11px;letter-spacing:.07em}.day-heading{display:none}.day-heading:before,.day-heading:after{display:none}.logo{grid-column:2;grid-row:1;justify-self:end;align-self:start;height:62px;max-width:78px;padding-bottom:0}.tabs{grid-template-columns:repeat(7,minmax(92px,1fr));overflow-x:auto;scrollbar-width:thin}.tab{height:42px;font-size:12px}.scroller{padding:10px 8px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch}.schedule{min-width:calc(var(--time-w) + 7 * var(--field-w))}.field-head{padding-top:10px}.field-head .name{font-size:17px}.field-head .type{font-size:11px;margin-top:5px}.event .team{font-size:12px}.event .room{font-size:10.5px;margin-top:8px}.time-label{font-size:10.5px}}
+@media(max-width:1350px){:root{--time-w:86px;--field-w:170px;--row-h:31px}.page{padding:0;background:#fff}.card{border-radius:0;border:0;box-shadow:none}.top{display:grid;grid-template-columns:1fr 82px;grid-template-rows:auto;align-items:start;gap:8px 12px;padding:16px 16px 14px;border-bottom:1px solid #eceff3}.brand{grid-column:1;grid-row:1;padding-left:15px;gap:9px}.brand h1{font-size:21px;letter-spacing:.025em;white-space:normal;line-height:1.08}.brand .season{font-size:11px;letter-spacing:.07em}.day-heading{display:none}.day-heading:before,.day-heading:after{display:none}.logo{grid-column:2;grid-row:1;justify-self:end;align-self:start;height:62px;max-width:78px;padding-bottom:0}.tabs{grid-template-columns:repeat(7,minmax(92px,1fr));overflow-x:auto;scrollbar-width:thin}.tab{height:42px;font-size:12px}.scroller{padding:10px 8px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch}.schedule{width:var(--plan-w);min-width:var(--plan-w)}.field-head{padding-top:10px}.field-head .name{font-size:17px}.field-head .type{font-size:11px;margin-top:5px}.event .team{font-size:12px}.event .room{font-size:10.5px;margin-top:8px}.time-label{font-size:10.5px}}
 @media(max-width:640px){.goals{margin:0 8px 14px}.goals-title{font-size:12px}.goals-table{font-size:10.5px}:root{--time-w:78px;--field-w:154px;--row-h:30px}.top{padding:14px 12px 12px}.brand h1{font-size:18px}.brand .season{font-size:10px}.logo{height:54px;max-width:68px}.tab{min-width:86px;font-size:11px}.field-head .name{font-size:16px}.event .team{font-size:11.5px}.event .room{font-size:10px}}
 
 @media(max-height:520px) and (orientation:landscape){
